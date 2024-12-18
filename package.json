@@ -1,0 +1,25 @@
+{
+  "name": "gdrive",
+  "version": "1.0.0",
+  "description": "A Storage Solution",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Drive"
+  ],
+  "author": "Rashid Khan",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.1"
+  }
+}
