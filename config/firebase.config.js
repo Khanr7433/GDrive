@@ -1,11 +1,26 @@
-const Firebase = require("firebase-admin");
+const admin = require('firebase-admin');
 
 // Note: You'll need to add your Firebase service account JSON file
-// const serviceAccount = require('../your-firebase-service-account.json');
+// For production, use environment variables or Google Cloud credentials
+// const serviceAccount = require('../path-to-your-service-account-key.json');
 
-const firebase = Firebase.initializeApp({
-  // credential: Firebase.credential.cert(serviceAccount),
-  // storageBucket: 'your-bucket-name.appspot.com'
+// Initialize Firebase Admin (commented out until you have credentials)
+/*
+const firebase = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'your-project-id.appspot.com'
 });
+*/
 
-module.exports = Firebase;
+// For development, we'll use a placeholder
+const firebase = {
+    storage: () => ({
+        bucket: () => ({
+            file: () => ({
+                getSignedUrl: async () => ['#']
+            })
+        })
+    })
+};
+
+module.exports = firebase;
