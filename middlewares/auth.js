@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken";
 
 function auth(req, res, next) {
-  const token = req.cookies.token;
+  const token =
+    req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
-    return res.status(401).json({
-      message: "Unauthorized",
-    });
+    return res.redirect("/user/login");
   }
 
   try {
@@ -16,9 +15,7 @@ function auth(req, res, next) {
 
     return next();
   } catch (err) {
-    return res.status(401).json({
-      message: "Unauthorized",
-    });
+    return res.redirect("/user/login");
   }
 }
 

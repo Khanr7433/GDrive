@@ -5,8 +5,6 @@ import userModel from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-/* /user/test */
-
 router.get("/register", (req, res) => {
   res.render("register");
 });
@@ -28,15 +26,73 @@ router.post(
 
     const { email, username, password } = req.body;
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    try {
+      // Check if user already exists
+      const existingUser = await userModel.findOne({
+        $or: [{ username: username }, { email: email }],
+      });
 
-    const newUser = await userModel.create({
-      email,
-      username,
-      password: hashPassword,
-    });
+      if (existingUser) {
+        if (existingUser.username === username) {
+          return res.status(400).json({
+            message:
+              "Username already exists. Please choose a different username.",
+          });
+        }
+        if (existingUser.email === email) {
+          return res.status(400).json({
+            message:
+              "Email already registered. Please use a different email or login.",
+          });
+        }
+      }
 
-    res.json(newUser);
+      const hashPassword = await bcrypt.hash(password, 10);
+
+      const newUser = await userModel.create({
+        email,
+        username,
+        password: hashPassword,
+      });
+
+      // Generate JWT token for the new user
+      const token = jwt.sign(
+        {
+          userId: newUser._id,
+          email: newUser.email,
+          username: newUser.username,
+        },
+        process.env.JWT_SECRET
+      );
+
+      // Set the token as a cookie
+      res.cookie("token", token);
+
+      // Redirect to home page with success message
+      res.redirect("/home?message=Registration successful! Welcome to GDrive");
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      // Handle MongoDB duplicate key error
+      if (error.code === 11000) {
+        if (error.keyPattern.username) {
+          return res.status(400).json({
+            message:
+              "Username already exists. Please choose a different username.",
+          });
+        }
+        if (error.keyPattern.email) {
+          return res.status(400).json({
+            message:
+              "Email already registered. Please use a different email or login.",
+          });
+        }
+      }
+
+      return res.status(500).json({
+        message: "Registration failed. Please try again.",
+      });
+    }
   }
 );
 
@@ -60,36 +116,43 @@ router.post(
 
     const { username, password } = req.body;
 
-    const user = await userModel.findOne({
-      username: username,
-    });
+    try {
+      const user = await userModel.findOne({
+        username: username,
+      });
 
-    if (!user) {
-      return res.status(400).json({
-        message: "username or password is incorrect",
+      if (!user) {
+        return res.status(400).json({
+          message: "username or password is incorrect",
+        });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res.status(400).json({
+          message: "username or password is incorrect",
+        });
+      }
+
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          email: user.email,
+          username: user.username,
+        },
+        process.env.JWT_SECRET
+      );
+
+      res.cookie("token", token);
+
+      res.redirect("/home?message=Login successful! Welcome back");
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({
+        message: "Login failed. Please try again.",
       });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({
-        message: "username or password is incorrect",
-      });
-    }
-
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        email: user.email,
-        username: user.username,
-      },
-      process.env.JWT_SECRET
-    );
-
-    res.cookie("token", token);
-
-    res.send("Logged in");
   }
 );
 

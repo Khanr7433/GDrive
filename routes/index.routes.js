@@ -8,6 +8,11 @@ const router = express.Router();
 import upload from "../config/multer.config.js";
 import fileModel from "../models/files.models.js";
 
+// Landing page route
+router.get("/", (req, res) => {
+  res.render("sitehome");
+});
+
 router.get("/home", authMiddleware, async (req, res) => {
   try {
     const userFiles = await fileModel.find({
@@ -16,8 +21,12 @@ router.get("/home", authMiddleware, async (req, res) => {
 
     console.log(userFiles);
 
+    // Get message from query parameter
+    const message = req.query.message || null;
+
     res.render("home", {
       files: userFiles,
+      message: message,
     });
   } catch (err) {
     console.log(err);
@@ -44,30 +53,51 @@ router.post(
       let cloudStorageObject = null;
 
       if (isGoogleCloudStorage && gcs.bucket && req.file.buffer) {
-        // Upload to Google Cloud Storage
-        const filename =
-          Date.now() +
-          "-" +
-          Math.round(Math.random() * 1e9) +
-          path.extname(req.file.originalname);
-        const blob = gcs.bucket.file(`uploads/${filename}`);
+        try {
+          // Upload to Google Cloud Storage
+          const filename =
+            Date.now() +
+            "-" +
+            Math.round(Math.random() * 1e9) +
+            path.extname(req.file.originalname);
+          const blob = gcs.bucket.file(`uploads/${filename}`);
 
-        const blobStream = blob.createWriteStream({
-          metadata: {
-            contentType: req.file.mimetype,
-          },
-          public: true,
-        });
+          const blobStream = blob.createWriteStream({
+            metadata: {
+              contentType: req.file.mimetype,
+            },
+          });
 
-        await new Promise((resolve, reject) => {
-          blobStream.on("error", reject);
-          blobStream.on("finish", resolve);
-          blobStream.end(req.file.buffer);
-        });
+          await new Promise((resolve, reject) => {
+            blobStream.on("error", reject);
+            blobStream.on("finish", resolve);
+            blobStream.end(req.file.buffer);
+          });
 
-        filePath = `uploads/${filename}`;
-        cloudStorageUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_STORAGE_BUCKET}/${filePath}`;
-        cloudStorageObject = filename;
+          filePath = `uploads/${filename}`;
+          cloudStorageUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_STORAGE_BUCKET}/${filePath}`;
+          cloudStorageObject = filename;
+        } catch (gcsError) {
+          console.error(
+            "Google Cloud Storage upload failed:",
+            gcsError.message
+          );
+
+          // If there's a local file created by multer, delete it
+          if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            try {
+              fs.unlinkSync(req.file.path);
+              console.log("Cleaned up local file after GCS upload failure");
+            } catch (deleteError) {
+              console.error("Error deleting local file:", deleteError.message);
+            }
+          }
+
+          // Throw error to stop the upload process
+          throw new Error(
+            `Google Cloud Storage upload failed: ${gcsError.message}. Please try again.`
+          );
+        }
       } else {
         // Use local file path
         filePath = req.file.path;

@@ -36,3 +36,5 @@ yarn-error.log*
 # Uploads (for local storage)
 uploads/*
 !uploads/.gitkeep
+
+gdrive-b8663-0299ab6a87cf.json
