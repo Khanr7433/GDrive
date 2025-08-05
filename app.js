@@ -1,12 +1,12 @@
-const express = require("express");
-const userRouter = require("./routes/user.routes");
-const dotenv = require("dotenv");
+import express from "express";
+import userRouter from "./routes/user.routes.js";
+import dotenv from "dotenv";
 dotenv.config();
-const connectToDB = require("./config/db");
+import connectToDB from "./config/db.js";
 connectToDB();
-const cookieParser = require("cookie-parser");
+import cookieParser from "cookie-parser";
 const app = express();
-const indexRouter = require("./routes/index.routes");
+import indexRouter from "./routes/index.routes.js";
 
 app.set("view engine", "ejs");
 app.use(cookieParser());

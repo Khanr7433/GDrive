@@ -9,14 +9,14 @@ A Node.js-based cloud storage application that allows users to upload, store, an
 - **File Management**: View and download uploaded files
 - **Secure Storage**: Files are stored securely with user-specific access control
 - **Responsive UI**: Modern, responsive interface using Tailwind CSS
-- **Cloud Storage Ready**: Configurable for Firebase Cloud Storage or local storage
+- **Cloud Storage Ready**: Configurable for Google Cloud Storage or local storage
 
 ## Tech Stack
 
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT (JSON Web Tokens), bcrypt for password hashing
-- **File Upload**: Multer (with Firebase Storage support)
+- **File Upload**: Multer (with Google Cloud Storage support)
 - **Frontend**: EJS templates, Tailwind CSS, Flowbite components
 - **Validation**: Express Validator
 
@@ -66,15 +66,18 @@ A Node.js-based cloud storage application that allows users to upload, store, an
 
 Files are stored locally in the `uploads/` directory.
 
-### Firebase Cloud Storage (Optional)
+### Google Cloud Storage (Optional)
 
-To use Firebase Cloud Storage:
+To use Google Cloud Storage:
 
-1. Create a Firebase project and enable Cloud Storage
-2. Download the service account JSON file
-3. Place it in your project root
-4. Update `config/firebase.config.js` and `config/multer.config.js` with your Firebase credentials
-5. Add Firebase configuration to your `.env` file
+1. Create a Google Cloud project and enable Cloud Storage API
+2. Create a storage bucket
+3. Create a service account with Storage Admin permissions
+4. Download the service account JSON key file or use environment variables
+5. Update your `.env` file with Google Cloud Storage configuration
+6. Set `USE_GOOGLE_CLOUD_STORAGE=true`
+
+For detailed setup instructions, see `GOOGLE_CLOUD_STORAGE_SETUP.md`.
 
 ## API Endpoints
 
@@ -119,8 +122,8 @@ To use Firebase Cloud Storage:
 - express-validator: Input validation
 - cookie-parser: Cookie parsing
 - dotenv: Environment variable management
-- firebase-admin: Firebase integration (optional)
-- multer-firebase-storage: Firebase storage for multer (optional)
+- @google-cloud/storage: Google Cloud Storage integration (optional)
+- multer-google-storage: Google Cloud Storage for multer (optional)
 
 ### Development
 
