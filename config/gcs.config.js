@@ -1,12 +1,26 @@
 import { Storage } from "@google-cloud/storage";
-import dotenv from "dotenv";
 import fs from "fs";
+import dotenv from "dotenv";
 dotenv.config();
 
 // Initialize Google Cloud Storage
 let storage;
 
 try {
+  console.log("Checking environment variables:");
+  console.log(
+    "GOOGLE_CLOUD_PROJECT_ID:",
+    process.env.GOOGLE_CLOUD_PROJECT_ID ? "✓ Set" : "✗ Missing"
+  );
+  console.log(
+    "GOOGLE_CLOUD_KEY_FILE:",
+    process.env.GOOGLE_CLOUD_KEY_FILE ? "✓ Set" : "✗ Missing"
+  );
+  console.log(
+    "GOOGLE_CLOUD_STORAGE_BUCKET:",
+    process.env.GOOGLE_CLOUD_STORAGE_BUCKET ? "✓ Set" : "✗ Missing"
+  );
+
   if (
     process.env.GOOGLE_CLOUD_PROJECT_ID &&
     process.env.GOOGLE_CLOUD_KEY_FILE

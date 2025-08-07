@@ -12,21 +12,39 @@
       href="https://cdn.jsdelivr.net/npm/remixicon@4.4.0/fonts/remixicon.css"
       rel="stylesheet"
     />
+    <style>
+      .file-card {
+        transition: all 0.3s ease;
+      }
+      .file-card:hover {
+        transform: translateY(-2px);
+      }
+      .aspect-square {
+        aspect-ratio: 1 / 1;
+      }
+    </style>
   </head>
   <body>
     <main class="p-4 bg-gray-100 dark:bg-gray-800 h-screen w-screen">
-      <!-- Success Message -->
-      <% if (message) { %>
-      <div
-        id="success-message"
-        class="mb-4 p-4 text-green-800 bg-green-100 border border-green-300 rounded-lg dark:bg-green-800 dark:text-green-100 dark:border-green-600"
-      >
+      <!-- Message Display -->
+      <% if (message) { %> <% const isError =
+      message.toLowerCase().includes('error') ||
+      message.toLowerCase().includes('failed'); const messageClass = isError ?
+      'text-red-800 bg-red-100 border border-red-300 dark:bg-red-800
+      dark:text-red-100 dark:border-red-600' : 'text-green-800 bg-green-100
+      border border-green-300 dark:bg-green-800 dark:text-green-100
+      dark:border-green-600'; const iconClass = isError ?
+      'ri-error-warning-line' : 'ri-check-circle-line'; const closeButtonClass =
+      isError ? 'text-red-600 hover:text-red-800 dark:text-red-200
+      dark:hover:text-red-100' : 'text-green-600 hover:text-green-800
+      dark:text-green-200 dark:hover:text-green-100'; %>
+      <div id="success-message" class="mb-4 p-4 rounded-lg <%= messageClass %>">
         <div class="flex items-center">
-          <i class="ri-check-circle-line text-xl mr-2"></i>
+          <i class="<%= iconClass %> text-xl mr-2"></i>
           <span><%= message %></span>
           <button
             onclick="hideMessage()"
-            class="ml-auto text-green-600 hover:text-green-800 dark:text-green-200 dark:hover:text-green-100"
+            class="ml-auto <%= closeButtonClass %>"
           >
             <i class="ri-close-line text-xl"></i>
           </button>
@@ -38,12 +56,21 @@
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
           GDrive - Your Files
         </h1>
-        <button
-          onclick="showPopUp()"
-          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Upload File
-        </button>
+        <div class="flex gap-3">
+          <button
+            onclick="showPopUp()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Upload File
+          </button>
+          <a
+            href="/user/logout"
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center"
+          >
+            <i class="ri-logout-box-line mr-2"></i>
+            Logout
+          </a>
+        </div>
       </div>
 
       <div
@@ -145,29 +172,108 @@
         </button>
       </div>
 
-      <div class="files mt-3 flex flex-col gap-2">
-        <% if (files && files.length > 0) { %> <% files.forEach((file)=>{ %>
+      <div class="files mt-6">
+        <% if (files && files.length > 0) { %>
         <div
-          class="p-4 cursor-pointer rounded-md bg-white dark:bg-gray-700 flex justify-between items-center shadow"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
         >
-          <div class="flex items-center">
-            <i class="ri-file-line text-2xl text-gray-500 mr-3"></i>
-            <h1 class="text-gray-900 dark:text-white">
-              <%= file.originalname %>
-            </h1>
-          </div>
-          <a
-            href="/download/<%= file.path %>"
-            class="text-blue-500 hover:text-blue-700 text-xl"
-            download="<%= file.originalname %>"
+          <% files.forEach((file)=>{ %>
+          <div
+            class="group relative bg-white dark:bg-gray-700 rounded-lg shadow hover:shadow-lg file-card overflow-hidden"
           >
-            <i class="ri-download-line"></i>
-          </a>
+            <!-- File Preview/Icon Container -->
+            <div
+              class="aspect-square flex items-center justify-center bg-gray-50 dark:bg-gray-600 relative"
+            >
+              <% const isImage = file.mimetype &&
+              file.mimetype.startsWith('image/'); const isPDF = file.mimetype
+              === 'application/pdf'; const isVideo = file.mimetype &&
+              file.mimetype.startsWith('video/'); const isAudio = file.mimetype
+              && file.mimetype.startsWith('audio/'); const isText =
+              file.mimetype && (file.mimetype.startsWith('text/') ||
+              file.mimetype === 'application/json'); const isArchive =
+              file.mimetype && (file.mimetype.includes('zip') ||
+              file.mimetype.includes('rar') || file.mimetype.includes('tar'));
+              const isDocument = file.mimetype &&
+              (file.mimetype.includes('document') ||
+              file.mimetype.includes('docx') || file.mimetype.includes('doc'));
+              const isSpreadsheet = file.mimetype &&
+              (file.mimetype.includes('spreadsheet') ||
+              file.mimetype.includes('xlsx') || file.mimetype.includes('xls'));
+              const isPresentation = file.mimetype &&
+              (file.mimetype.includes('presentation') ||
+              file.mimetype.includes('pptx') || file.mimetype.includes('ppt'));
+              %> <% if (isImage) { %>
+              <!-- Image Preview -->
+              <img
+                src="/download/<%= file.path %>"
+                alt="<%= file.originalname %>"
+                class="w-full h-full object-cover"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+              <div class="hidden w-full h-full items-center justify-center">
+                <i class="ri-image-line text-4xl text-gray-400"></i>
+              </div>
+              <% } else if (isPDF) { %>
+              <i class="ri-file-pdf-line text-4xl text-red-500"></i>
+              <% } else if (isVideo) { %>
+              <i class="ri-video-line text-4xl text-purple-500"></i>
+              <% } else if (isAudio) { %>
+              <i class="ri-music-line text-4xl text-green-500"></i>
+              <% } else if (isText) { %>
+              <i class="ri-file-text-line text-4xl text-blue-500"></i>
+              <% } else if (isArchive) { %>
+              <i class="ri-file-zip-line text-4xl text-yellow-600"></i>
+              <% } else if (isDocument) { %>
+              <i class="ri-file-word-line text-4xl text-blue-600"></i>
+              <% } else if (isSpreadsheet) { %>
+              <i class="ri-file-excel-line text-4xl text-green-600"></i>
+              <% } else if (isPresentation) { %>
+              <i class="ri-file-ppt-line text-4xl text-orange-500"></i>
+              <% } else { %>
+              <i class="ri-file-line text-4xl text-gray-500"></i>
+              <% } %>
+
+              <!-- Download button overlay -->
+              <div
+                class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center"
+              >
+                <a
+                  href="/download/<%= file.path %>"
+                  class="opacity-0 group-hover:opacity-100 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-2 rounded-full transition-all duration-200 transform scale-75 group-hover:scale-100"
+                  download="<%= file.originalname %>"
+                  title="Download <%= file.originalname %>"
+                >
+                  <i class="ri-download-line text-xl"></i>
+                </a>
+              </div>
+            </div>
+
+            <!-- File Info -->
+            <div class="p-3">
+              <h3
+                class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                title="<%= file.originalname %>"
+              >
+                <%= file.originalname %>
+              </h3>
+              <% if (file.size) { %>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <%= formatFileSize(file.size) %>
+              </p>
+              <% } %> <% if (file.createdAt) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <%= new Date(file.createdAt).toLocaleDateString() %>
+              </p>
+              <% } %>
+            </div>
+          </div>
+          <% }) %>
         </div>
-        <% }) %> <% } else { %>
-        <div class="text-center py-8">
+        <% } else { %>
+        <div class="text-center py-12">
           <i class="ri-folder-open-line text-6xl text-gray-400 mb-4"></i>
-          <p class="text-gray-500 dark:text-gray-400">
+          <p class="text-gray-500 dark:text-gray-400 text-lg">
             No files uploaded yet. Click "Upload File" to get started!
           </p>
         </div>

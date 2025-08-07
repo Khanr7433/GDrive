@@ -24,9 +24,19 @@ router.get("/home", authMiddleware, async (req, res) => {
     // Get message from query parameter
     const message = req.query.message || null;
 
+    // Helper function to format file size
+    const formatFileSize = (bytes) => {
+      if (bytes === 0) return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
     res.render("home", {
       files: userFiles,
       message: message,
+      formatFileSize: formatFileSize,
     });
   } catch (err) {
     console.log(err);
@@ -114,13 +124,12 @@ router.post(
         isGoogleCloudStorage: isGoogleCloudStorage && !!cloudStorageUrl,
       });
 
-      res.json(newFile);
+      res.redirect(
+        `/home?message=File "${req.file.originalname}" uploaded successfully!`
+      );
     } catch (error) {
       console.error("Upload error:", error);
-      res.status(500).json({
-        message: "Error uploading file",
-        error: error.message,
-      });
+      res.redirect(`/home?message=Error uploading file: ${error.message}`);
     }
   }
 );

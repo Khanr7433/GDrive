@@ -11,7 +11,7 @@ router.get("/register", (req, res) => {
 
 router.post(
   "/register",
-  body("email").trim().isEmail().isLength({ min: 13 }),
+  body("email").trim().isEmail().isLength({ min: 5 }),
   body("password").trim().isLength({ min: 5 }),
   body("username").trim().isLength({ min: 3 }),
   async (req, res) => {
@@ -97,7 +97,9 @@ router.post(
 );
 
 router.get("/login", (req, res) => {
-  res.render("login");
+  // Get message from query parameter
+  const message = req.query.message || null;
+  res.render("login", { message: message });
 });
 
 router.post(
@@ -155,5 +157,11 @@ router.post(
     }
   }
 );
+
+router.get("/logout", (req, res) => {
+  res.clearCookie("token");
+
+  res.redirect("/user/login?message=You have been logged out successfully");
+});
 
 export default router;
