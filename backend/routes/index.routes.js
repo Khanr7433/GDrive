@@ -3,6 +3,7 @@ import authMiddleware from "../middlewares/auth.js";
 import gcs from "../config/gcs.config.js";
 import fs from "fs";
 import path from "path";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 import upload from "../config/multer.config.js";
@@ -11,6 +12,51 @@ import fileModel from "../models/files.models.js";
 // Landing page route
 router.get("/", (req, res) => {
   res.render("sitehome");
+});
+
+// API endpoint to check authentication status
+router.get("/auth/status", (req, res) => {
+  const token =
+    req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.json({
+      isLoggedIn: false,
+      user: null,
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({
+      isLoggedIn: true,
+      user: {
+        userId: decoded.userId,
+        email: decoded.email,
+        username: decoded.username,
+      },
+    });
+  } catch (err) {
+    res.json({
+      isLoggedIn: false,
+      user: null,
+    });
+  }
+});
+
+// API endpoint to get user files
+router.get("/files", authMiddleware, async (req, res) => {
+  try {
+    const userFiles = await fileModel.find({
+      user: req.user.userId,
+    });
+    res.json(userFiles);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
 });
 
 router.get("/home", authMiddleware, async (req, res) => {
@@ -124,12 +170,34 @@ router.post(
         isGoogleCloudStorage: isGoogleCloudStorage && !!cloudStorageUrl,
       });
 
-      res.redirect(
-        `/home?message=File "${req.file.originalname}" uploaded successfully!`
-      );
+      // Check if this is an API request (React frontend) or regular request
+      if (
+        req.headers.accept &&
+        req.headers.accept.includes("application/json")
+      ) {
+        res.json({
+          message: `File "${req.file.originalname}" uploaded successfully!`,
+          file: newFile,
+        });
+      } else {
+        res.redirect(
+          `/home?message=File "${req.file.originalname}" uploaded successfully!`
+        );
+      }
     } catch (error) {
       console.error("Upload error:", error);
-      res.redirect(`/home?message=Error uploading file: ${error.message}`);
+
+      // Check if this is an API request (React frontend) or regular request
+      if (
+        req.headers.accept &&
+        req.headers.accept.includes("application/json")
+      ) {
+        res.status(500).json({
+          message: `Error uploading file: ${error.message}`,
+        });
+      } else {
+        res.redirect(`/home?message=Error uploading file: ${error.message}`);
+      }
     }
   }
 );

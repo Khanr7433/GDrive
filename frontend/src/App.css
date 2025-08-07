@@ -1,0 +1,23 @@
+/* Custom styles for the app */
+.file-card {
+  transition: all 0.3s ease;
+}
+
+.file-card:hover {
+  transform: translateY(-2px);
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
