@@ -6,7 +6,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 router.get("/register", (req, res) => {
-  res.render("register");
+  // Get message from query parameter
+  const message = req.query.message || null;
+  res.render("register", { message: message });
 });
 
 router.post(

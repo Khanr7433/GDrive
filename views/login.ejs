@@ -18,7 +18,7 @@
   >
     <div class="w-96">
       <!-- Success/Logout Message -->
-      <% if (message) { %>
+      <% if (typeof message !== 'undefined' && message) { %>
       <div
         id="success-message"
         class="mb-4 p-4 text-blue-800 bg-blue-100 border border-blue-300 rounded-lg dark:bg-blue-800 dark:text-blue-100 dark:border-blue-600"

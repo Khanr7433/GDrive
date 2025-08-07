@@ -1,12 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
+import path from "path";
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 
+// Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: join(__dirname, ".env") });
+dotenv.config();
 console.log(
   "Environment loaded. MONGODB_URI:",
   process.env.MONGODB_URI ? "✓ Loaded" : "✗ Missing"
@@ -18,6 +19,8 @@ import cookieParser from "cookie-parser";
 const app = express();
 import indexRouter from "./routes/index.routes.js";
 
+// Set views directory
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.set("view options", { async: true });
 app.use(cookieParser());

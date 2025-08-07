@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GDrive - Your Files</title>
+    <meta
+      name="description"
+      content="Manage and organize your files with GDrive - upload, download, and share your documents securely."
+    />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css"
@@ -27,21 +32,24 @@
   <body>
     <main class="p-4 bg-gray-100 dark:bg-gray-800 h-screen w-screen">
       <!-- Message Display -->
-      <% if (message) { %> <% const isError =
+      <% if (typeof message !== 'undefined' && message) { const isError =
       message.toLowerCase().includes('error') ||
       message.toLowerCase().includes('failed'); const messageClass = isError ?
-      'text-red-800 bg-red-100 border border-red-300 dark:bg-red-800
-      dark:text-red-100 dark:border-red-600' : 'text-green-800 bg-green-100
+      "text-red-800 bg-red-100 border border-red-300 dark:bg-red-800
+      dark:text-red-100 dark:border-red-600" : "text-green-800 bg-green-100
       border border-green-300 dark:bg-green-800 dark:text-green-100
-      dark:border-green-600'; const iconClass = isError ?
-      'ri-error-warning-line' : 'ri-check-circle-line'; const closeButtonClass =
-      isError ? 'text-red-600 hover:text-red-800 dark:text-red-200
-      dark:hover:text-red-100' : 'text-green-600 hover:text-green-800
-      dark:text-green-200 dark:hover:text-green-100'; %>
-      <div id="success-message" class="mb-4 p-4 rounded-lg <%= messageClass %>">
+      dark:border-green-600"; const iconClass = isError ?
+      "ri-error-warning-line" : "ri-check-circle-line"; const closeButtonClass =
+      isError ? "text-red-600 hover:text-red-800 dark:text-red-200
+      dark:hover:text-red-100" : "text-green-600 hover:text-green-800
+      dark:text-green-200 dark:hover:text-green-100"; %>
+      <div
+        id="message-container"
+        class="mb-4 p-4 rounded-lg <%= messageClass %>"
+      >
         <div class="flex items-center">
           <i class="<%= iconClass %> text-xl mr-2"></i>
-          <span><%= message %></span>
+          <span><%- message %></span>
           <button
             onclick="hideMessage()"
             class="ml-auto <%= closeButtonClass %>"
@@ -60,12 +68,14 @@
           <button
             onclick="showPopUp()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            aria-label="Upload a new file"
           >
             Upload File
           </button>
           <a
             href="/user/logout"
             class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center"
+            aria-label="Logout from your account"
           >
             <i class="ri-logout-box-line mr-2"></i>
             Logout
@@ -75,6 +85,10 @@
 
       <div
         class="pop hidden backdrop-blur fixed top-0 left-0 h-screen w-screen flex items-center justify-center z-50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upload-modal-title"
+        aria-describedby="upload-modal-description"
       >
         <form
           action="/upload"
@@ -82,6 +96,10 @@
           enctype="multipart/form-data"
           class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg"
         >
+          <h2 id="upload-modal-title" class="sr-only">Upload File</h2>
+          <p id="upload-modal-description" class="sr-only">
+            Select a file to upload to your GDrive storage
+          </p>
           <div class="flex items-center justify-center w-96">
             <label
               for="dropzone-file"
@@ -167,13 +185,14 @@
         <button
           class="absolute top-4 right-4 text-gray-500 dark:text-gray-400 text-xl"
           onclick="hidePopUp()"
+          aria-label="Close upload dialog"
         >
           <i class="ri-close-line"></i>
         </button>
       </div>
 
       <div class="files mt-6">
-        <% if (files && files.length > 0) { %>
+        <% if (typeof files !== 'undefined' && files && files.length > 0) { %>
         <div
           class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
         >
@@ -259,7 +278,8 @@
               </h3>
               <% if (file.size) { %>
               <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <%= formatFileSize(file.size) %>
+                <%= typeof formatFileSize !== 'undefined' ?
+                formatFileSize(file.size) : file.size + ' bytes' %>
               </p>
               <% } %> <% if (file.createdAt) { %>
               <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -287,6 +307,8 @@
         document.querySelector(".pop").classList.remove("hidden");
         // Reset file selection when opening popup
         clearFileSelection();
+        // Focus management for accessibility
+        document.getElementById("dropzone-file").focus();
       }
 
       function hidePopUp() {
@@ -296,12 +318,22 @@
       }
 
       function hideMessage() {
-        document.getElementById("success-message").style.display = "none";
+        document.getElementById("message-container").style.display = "none";
       }
 
       function showFileDetails(input) {
         const file = input.files[0];
         if (file) {
+          // Validate file size (example: 10MB limit)
+          const maxSize = 10 * 1024 * 1024; // 10MB
+          if (file.size > maxSize) {
+            alert(
+              "File size exceeds 10MB limit. Please choose a smaller file."
+            );
+            clearFileSelection();
+            return;
+          }
+
           // Show file details section
           document.getElementById("upload-prompt").classList.add("hidden");
           document.getElementById("file-details").classList.remove("hidden");
@@ -349,7 +381,7 @@
 
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
-        const message = document.getElementById("success-message");
+        const message = document.getElementById("message-container");
         if (message) {
           message.style.display = "none";
         }
@@ -388,6 +420,16 @@
         if (files.length > 0) {
           document.getElementById("dropzone-file").files = files;
           showFileDetails(document.getElementById("dropzone-file"));
+        }
+      });
+
+      // Handle keyboard events for accessibility
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const popup = document.querySelector(".pop");
+          if (!popup.classList.contains("hidden")) {
+            hidePopUp();
+          }
         }
       });
     </script>
