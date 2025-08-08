@@ -6,7 +6,7 @@ import Header from "./components/Header";
 import Message from "./components/Message";
 
 // Configure axios defaults
-axios.defaults.baseURL = "http://localhost:5000"; // Backend URL
+axios.defaults.baseURL = "http://localhost:3000"; // Backend URL
 
 function App() {
   const [files, setFiles] = useState([]);
